@@ -9519,6 +9519,12 @@ Decl *ClangImporter::Implementation::importDeclAndCacheImpl(
   if (!SuperfluousTypedefsAreTransparent && TypedefIsSuperfluous)
     return nullptr;
 
+  if (ClangDecl->getDeclContext()->isNamespace()) {
+    addEntryToLookupTable(*BridgingHeaderLookupTable,
+                          const_cast<clang::NamedDecl *>(ClangDecl),
+                          getNameImporter());
+  }
+
   return Result;
 }
 
