@@ -1925,11 +1925,22 @@ void importer::addEntryToLookupTable(SwiftLookupTable &table,
   // Walk the members of any context that can have nested members.
   if (isa<clang::TagDecl>(named) || isa<clang::ObjCInterfaceDecl>(named) ||
       isa<clang::ObjCProtocolDecl>(named) ||
-      isa<clang::ObjCCategoryDecl>(named) || isa<clang::NamespaceDecl>(named)) {
+      isa<clang::ObjCCategoryDecl>(named)) {
     clang::DeclContext *dc = cast<clang::DeclContext>(named);
     for (auto member : dc->decls()) {
       if (auto namedMember = dyn_cast<clang::NamedDecl>(member))
         addEntryToLookupTable(table, namedMember, nameImporter);
+    }
+  }
+  if (isa<clang::NamespaceDecl>(named)) {
+    for (auto redecl : named->redecls()) {
+      auto *dc = cast<clang::DeclContext>(redecl);
+      for (auto member : dc->decls()) {
+        if (!member->isCanonicalDecl())
+          continue;
+        if (auto namedMember = dyn_cast<clang::NamedDecl>(member))
+          addEntryToLookupTable(table, namedMember, nameImporter);
+      }
     }
   }
 }
